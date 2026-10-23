@@ -1,0 +1,40 @@
+name: App tests
+
+# Runs on every push, on pull requests, by hand, and after every successful
+# deploy that reports a deployment status (Vercel, Netlify and others do).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Empty BASE_URL = test the bundled demo app.
+      BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || secrets.BASE_URL }}
+      TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      SIGNUP_EMAIL_DOMAIN: ${{ secrets.SIGNUP_EMAIL_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
