@@ -17,7 +17,8 @@ This starter checks the flows that matter on every deploy, on desktop and on an 
 | 5 | Core feature | Data not saved, or gone after a reload |
 | 6 | Secret scan | Stripe, Supabase `service_role` / `sb_secret_`, OpenAI, Anthropic, AWS keys or private keys in page HTML or JavaScript |
 
-Every test runs twice: desktop Chrome and a Pixel 7 screen.
+Every test runs twice, on desktop Chrome and a Pixel 7 screen, except sign-up: it runs once
+per run, because each sign-up can send a confirmation email and those are rate-limited.
 
 ## Try it on the demo app
 
@@ -29,7 +30,7 @@ npx playwright install chromium
 npm test
 ```
 
-With no `BASE_URL`, the tests start the bundled demo app (`demo-app/server.js`) and all 14 pass.
+With no `BASE_URL`, the tests start the bundled demo app (`demo-app/server.js`) and all 13 pass (1 skipped: sign-up on the Pixel screen).
 
 Now break the demo app the way real updates break apps, and watch the right test fail:
 
